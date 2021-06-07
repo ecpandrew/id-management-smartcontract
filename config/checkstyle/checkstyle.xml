@@ -29,7 +29,6 @@
 
     <property name="fileExtensions" value="java, properties, xml"/>
 
-    <property name="file" value="${config_loc}/suppressions.xml"/>
 
     <module name="SuppressionFilter">
         <property name="file" value="${config_loc}/suppressions.xml"/>
