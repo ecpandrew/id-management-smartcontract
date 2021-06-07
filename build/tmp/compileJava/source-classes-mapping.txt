@@ -1,0 +1,5 @@
+org/hyperledger/fabric/samples/assettransfer/Identity.java
+ org.hyperledger.fabric.samples.assettransfer.Identity
+org/hyperledger/fabric/samples/assettransfer/IdentityContract.java
+ org.hyperledger.fabric.samples.assettransfer.IdentityContract
+ org.hyperledger.fabric.samples.assettransfer.IdentityContract$IdentityErrors

@@ -54,7 +54,7 @@ public final class IdentityContract implements ContractInterface {
     public void InitLedger(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
-        CreateIdentity(ctx, "http://www.lsdi.ufma.br/" ,"ecc28486-6bf2-45bd-92ca-fda36e0e389f");
+        CreateIdentity(ctx, "http://www.lsdi.ufma.br/" ,"ecc28486-6bf2-45bd-92ca-fda36e0e389f", "ecc28486-6bf2-45bd-92ca-fda36e0e389f");
 
 
     }
@@ -66,7 +66,7 @@ public final class IdentityContract implements ContractInterface {
      * @return the created asset
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public Identity CreateIdentity(final Context ctx, final String context, final String id) {
+    public Identity CreateIdentity(final Context ctx, final String context, final String id, final String controlledBy) {
         ChaincodeStub stub = ctx.getStub();
 
         if (IdentityExists(ctx, id)) {
@@ -75,7 +75,10 @@ public final class IdentityContract implements ContractInterface {
             throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_ALREADY_EXISTS.toString());
         }
 
-        Identity identity = new Identity(context, id);
+        //todo(): verificar se a identidade controlledBy existe, caso não exista apenas permita a transação que o id for igual ao controlledBy
+
+
+        Identity identity = new Identity(context, id, controlledBy);
         String assetJSON = genson.serialize(identity);
         stub.putStringState(id, assetJSON);
 
