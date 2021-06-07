@@ -75,9 +75,9 @@ test {
 mainClassName = 'org.hyperledger.fabric.contract.ContractRouter'
 
 shadowJar {
-    baseName = 'chaincode'
-    version = null
-    classifier = null
+    archiveBaseName = 'chaincode'
+    archiveVersion = null
+    archiveClassifier = null
 
     manifest {
         attributes 'Main-Class': 'org.hyperledger.fabric.contract.ContractRouter'
