@@ -56,7 +56,6 @@ public final class IdentityContract implements ContractInterface {
 
         CreateIdentity(ctx, "http://www.lsdi.ufma.br/" ,"ecc28486-6bf2-45bd-92ca-fda36e0e389f", "ecc28486-6bf2-45bd-92ca-fda36e0e389f");
 
-
     }
 
     /**
@@ -74,9 +73,6 @@ public final class IdentityContract implements ContractInterface {
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_ALREADY_EXISTS.toString());
         }
-
-        //todo(): verificar se a identidade controlledBy existe, caso não exista apenas permita a transação que o id for igual ao controlledBy
-
 
         Identity identity = new Identity(context, id, controlledBy);
         String assetJSON = genson.serialize(identity);
@@ -106,56 +102,6 @@ public final class IdentityContract implements ContractInterface {
         Identity identity = genson.deserialize(identityJSON, Identity.class);
         return identity;
     }
-
-//    /**
-//     * Updates the properties of an asset on the ledger.
-//     *
-//     * @param ctx the transaction context
-//     * @param assetID the ID of the asset being updated
-//     * @param color the color of the asset being updated
-//     * @param size the size of the asset being updated
-//     * @param owner the owner of the asset being updated
-//     * @param appraisedValue the appraisedValue of the asset being updated
-//     * @return the transferred asset
-//     */
-//    @Transaction(intent = Transaction.TYPE.SUBMIT)
-//    public Asset UpdateAsset(final Context ctx, final String assetID, final String color, final int size,
-//        final String owner, final int appraisedValue) {
-//        ChaincodeStub stub = ctx.getStub();
-//
-//        if (!AssetExists(ctx, assetID)) {
-//            String errorMessage = String.format("Asset %s does not exist", assetID);
-//            System.out.println(errorMessage);
-//            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
-//        }
-//
-//        Asset newAsset = new Asset(assetID);
-//        String newAssetJSON = genson.serialize(newAsset);
-//        stub.putStringState(assetID, newAssetJSON);
-//
-//        return newAsset;
-//    }
-
-//    /**
-//     * Deletes asset on the ledger.
-//     *
-//     * @param ctx the transaction context
-//     * @param assetID the ID of the asset being deleted
-//     */
-//    @Transaction(intent = Transaction.TYPE.SUBMIT)
-//    public void DeleteAsset(final Context ctx, final String assetID) {
-//        ChaincodeStub stub = ctx.getStub();
-//
-//        if (!AssetExists(ctx, assetID)) {
-//            String errorMessage = String.format("Asset %s does not exist", assetID);
-//            System.out.println(errorMessage);
-//            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
-//        }
-//
-//        stub.delState(assetID);
-//    }
-
-
 
     /**
      * Checks the existence of the identity on the ledger

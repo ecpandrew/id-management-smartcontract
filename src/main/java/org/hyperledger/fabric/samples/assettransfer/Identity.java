@@ -24,12 +24,17 @@ public final class Identity {
     private final String controlledBy;
 
 
+    public String getId() {
+        return id;
+    }
 
-    public String getId() { return id; }
+    public String getContext() {
+        return context;
+    }
 
-    public String getContext() { return context; }
-
-    public String getControlledBy() { return controlledBy; }
+    public String getControlledBy() {
+        return controlledBy;
+    }
 
     public Identity(@JsonProperty("@context") final String context, @JsonProperty("id") final String id, @JsonProperty("controlledBy") final String controlledBy) {
         this.context = context;
@@ -62,6 +67,6 @@ public final class Identity {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [context= " + context + " assetID= " + id + " controlledBy= "+ controlledBy + "]";
+        return this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [context=" + context + ", assetID=" + id + ", controlledBy="+ controlledBy + "]";
     }
 }
