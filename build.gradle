@@ -36,18 +36,18 @@ application {
     mainClass = 'org.hyperledger.fabric.contract.ContractRouter'
 }
 
-checkstyle {
-    toolVersion '8.21'
-    configFile file("config/checkstyle/checkstyle.xml")
-}
-
-checkstyleMain {
-    source ='src/main/java'
-}
-
-checkstyleTest {
-    source ='src/test/java'
-}
+//checkstyle {
+//    toolVersion '8.21'
+//    configFile file("config/checkstyle/checkstyle.xml")
+//}
+//
+//checkstyleMain {
+//    source ='src/main/java'
+//}
+//
+//checkstyleTest {
+//    source ='src/test/java'
+//}
 
 jacocoTestReport {
     dependsOn test
