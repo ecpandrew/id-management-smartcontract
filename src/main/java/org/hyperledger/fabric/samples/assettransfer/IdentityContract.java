@@ -144,32 +144,26 @@ public final class IdentityContract implements ContractInterface {
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public String Debug1(
-            final Context ctx,
-            final String... args
+            final Context ctx
 
     ) {
 
         ChaincodeStub stub = ctx.getStub();
-        System.out.println(Arrays.toString(args));
-        for (String i: args
-             ) {
-            System.out.println(i);
-        }
 
-        return Arrays.toString(args);
+
+        return Arrays.toString(stub.getParameters().toArray());
     }
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public String Debug2(
-            final Context ctx,
-            final String... args
+            final Context ctx
 
     ) {
 
         ChaincodeStub stub = ctx.getStub();
 
 
-        return stub.getStringArgs().toString();
+        return Arrays.toString(stub.getStringArgs().toArray());
     }
 
 
