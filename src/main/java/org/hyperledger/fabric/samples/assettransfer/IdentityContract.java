@@ -96,75 +96,59 @@ public final class IdentityContract implements ContractInterface {
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public Identity CreateECIdentity(
-            final Context ctx,
-            final String... args
-//            final String context,
-//            final String id,
-//            final String controlledBy,
-//            final String kty,
-//            final String kid,
-//            final String crv,
-//            final String x,
-//            final String y,
-//            final String... subArray
-    ) {
+            final Context ctx) {
 
         ChaincodeStub stub = ctx.getStub();
+        List<String> args  = stub.getParameters();
 
 
-        if (IdentityExists(ctx, args[1])) {
-            String errorMessage = String.format("Identity %s already exists", args[1]);
+        String context      = args.get(0);
+        String identifier   = args.get(1);
+        String controlledBy = args.get(2);
+        String kty          = args.get(3);
+        String kid          = args.get(4);
+        String crv          = args.get(5);
+        String x            = args.get(6);
+        String y            = args.get(7);
+
+
+        if (IdentityExists(ctx, identifier)) {
+            String errorMessage = String.format("Identity %s already exists", identifier);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_ALREADY_EXISTS.toString());
         }
 
+
         HashMap<String, String> publicKeyJwk = new HashMap<>();
-        HashMap<String, String> subjectInfo = new HashMap<>();
+        HashMap<String, String> subjectInfo  = new HashMap<>();
+
+
         String[] dates = Utils.getIssueAndExpiracyDate(1);
 
-        publicKeyJwk.put("kty", args[3]);
-        publicKeyJwk.put("kid", args[4]);
-        publicKeyJwk.put("crv", args[5]);
-        publicKeyJwk.put("x", args[6]);
-        publicKeyJwk.put("y", args[7]);
 
-        for (int i = 8; i < args.length; i++) {
-            String[] split = args[i].split(":");
+        publicKeyJwk.put("kty", kty);
+        publicKeyJwk.put("kid", kid);
+        publicKeyJwk.put("crv", crv);
+        publicKeyJwk.put("x",   x);
+        publicKeyJwk.put("y",   y);
+
+        for (int i = 8; i < args.size(); i++) {
+            String[] split = args.get(i).split(":");
             subjectInfo.put(split[0], split[1]);
         }
 
-
-        Identity identity = new Identity(args[0], args[1], args[2], publicKeyJwk, subjectInfo, "active", dates[0], dates[1]);
+        Identity identity = new Identity(context, identifier, controlledBy, publicKeyJwk, subjectInfo, "active", dates[0], dates[1]);
 
         String assetJSON = genson.serialize(identity);
 
-        stub.putStringState(args[1], assetJSON);
+        stub.putStringState(identifier, assetJSON);
         return identity;
     }
 
-    @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public String Debug1(
-            final Context ctx
-
-    ) {
-
-        ChaincodeStub stub = ctx.getStub();
 
 
-        return Arrays.toString(stub.getParameters().toArray());
-    }
-
-    @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public String Debug2(
-            final Context ctx
-
-    ) {
-
-        ChaincodeStub stub = ctx.getStub();
 
 
-        return Arrays.toString(stub.getStringArgs().toArray());
-    }
 
 
     /**
