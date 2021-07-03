@@ -5,7 +5,9 @@
 package org.hyperledger.fabric.samples.assettransfer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;
@@ -54,9 +56,14 @@ public final class IdentityContract implements ContractInterface {
     public void InitLedger(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
-        CreateIdentity(ctx, "http://www.lsdi.ufma.br/" ,"ecc28486-6bf2-45bd-92ca-fda36e0e389f", "ecc28486-6bf2-45bd-92ca-fda36e0e389f");
+
+
+        CreateIdentity(ctx, "http://www.lsdi.ufma.br/" ,"lsdi:identity:first", "lsdi:identity:first");
+
 
     }
+
+
 
     /**
      * Creates a new identity on the ledger.
@@ -65,7 +72,10 @@ public final class IdentityContract implements ContractInterface {
      * @return the created asset
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public Identity CreateIdentity(final Context ctx, final String context, final String id, final String controlledBy) {
+    public Identity CreateIdentity(final Context ctx,
+                                   final String context,
+                                   final String id,
+                                   final String controlledBy) {
         ChaincodeStub stub = ctx.getStub();
 
         if (IdentityExists(ctx, id)) {
@@ -74,12 +84,68 @@ public final class IdentityContract implements ContractInterface {
             throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_ALREADY_EXISTS.toString());
         }
 
-        Identity identity = new Identity(context, id, controlledBy);
+        Identity identity = new Identity(context, id, controlledBy, null , null ,"active", null , null);
+
         String assetJSON = genson.serialize(identity);
         stub.putStringState(id, assetJSON);
-
         return identity;
     }
+
+    /**
+     * Creates a new identity on the ledger. This method expects only ECKeys as key;
+     *
+     * @param ctx the transaction context
+     * @return the created asset
+     */
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public Identity CreateECIdentity(
+            final Context ctx,
+            final String... args
+//            final String context,
+//            final String id,
+//            final String controlledBy,
+//            final String kty,
+//            final String kid,
+//            final String crv,
+//            final String x,
+//            final String y,
+//            final String... subArray
+    ) {
+
+        ChaincodeStub stub = ctx.getStub();
+
+        if (IdentityExists(ctx, args[1])) {
+            String errorMessage = String.format("Identity %s already exists", args[1]);
+            System.out.println(errorMessage);
+            throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_ALREADY_EXISTS.toString());
+        }
+
+        HashMap<String, String> publicKeyJwk = new HashMap<>();
+        HashMap<String, String> subjectInfo = new HashMap<>();
+        String[] dates = Utils.getIssueAndExpiracyDate(1);
+
+        publicKeyJwk.put("kty", args[3]);
+        publicKeyJwk.put("kid", args[4]);
+        publicKeyJwk.put("crv", args[5]);
+        publicKeyJwk.put("x", args[6]);
+        publicKeyJwk.put("y", args[7]);
+
+        for (int i = 8; i < args.length; i++) {
+            String[] split = args[i].split(":");
+            subjectInfo.put(split[0], split[1]);
+        }
+
+
+        Identity identity = new Identity(args[0], args[1], args[2], publicKeyJwk, subjectInfo, "active", dates[0], dates[1]);
+
+        String assetJSON = genson.serialize(identity);
+
+        stub.putStringState(args[1], assetJSON);
+        return identity;
+    }
+
+
+
 
     /**
      * Retrieves an asset with the specified ID from the ledger.
