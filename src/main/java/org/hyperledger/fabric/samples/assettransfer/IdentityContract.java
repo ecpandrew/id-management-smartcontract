@@ -4,10 +4,7 @@
 
 package org.hyperledger.fabric.samples.assettransfer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;
@@ -114,6 +111,7 @@ public final class IdentityContract implements ContractInterface {
 
         ChaincodeStub stub = ctx.getStub();
 
+
         if (IdentityExists(ctx, args[1])) {
             String errorMessage = String.format("Identity %s already exists", args[1]);
             System.out.println(errorMessage);
@@ -144,7 +142,35 @@ public final class IdentityContract implements ContractInterface {
         return identity;
     }
 
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public String Debug1(
+            final Context ctx,
+            final String... args
 
+    ) {
+
+        ChaincodeStub stub = ctx.getStub();
+        System.out.println(Arrays.toString(args));
+        for (String i: args
+             ) {
+            System.out.println(i);
+        }
+
+        return Arrays.toString(args);
+    }
+
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public String Debug2(
+            final Context ctx,
+            final String... args
+
+    ) {
+
+        ChaincodeStub stub = ctx.getStub();
+
+
+        return stub.getStringArgs().toString();
+    }
 
 
     /**
