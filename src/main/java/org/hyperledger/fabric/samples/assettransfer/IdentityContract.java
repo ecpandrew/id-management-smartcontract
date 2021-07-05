@@ -4,8 +4,16 @@
 
 package org.hyperledger.fabric.samples.assettransfer;
 
+import java.text.ParseException;
 import java.util.*;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.shaded.json.JSONObject;
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;
 import org.hyperledger.fabric.contract.annotation.Contact;
@@ -41,7 +49,9 @@ public final class IdentityContract implements ContractInterface {
 
     private enum IdentityErrors {
         IDENTITY_NOT_FOUND,
-        IDENTITY_ALREADY_EXISTS
+        IDENTITY_ALREADY_EXISTS,
+        SIGNATURE_INVALID,
+        SIGNATURE_PAYLOAD_DOES_NOT_MATCH
     }
 
     /**
@@ -96,20 +106,40 @@ public final class IdentityContract implements ContractInterface {
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public Identity CreateECIdentity(
-            final Context ctx) {
+            final Context ctx) throws JOSEException {
 
         ChaincodeStub stub = ctx.getStub();
         List<String> args  = stub.getParameters();
-
 
         String context      = args.get(0);
         String identifier   = args.get(1);
         String controlledBy = args.get(2);
         String kty          = args.get(3);
         String kid          = args.get(4);
-        String crv          = args.get(5);
-        String x            = args.get(6);
-        String y            = args.get(7);
+        String alg          = args.get(5);
+        String crv          = args.get(6);
+        String x            = args.get(7);
+        String y            = args.get(8);
+        String signature    = args.get(9);
+
+
+        HashMap<String, String> publicKeyJwk = new HashMap<>();
+        publicKeyJwk.put("kty", kty);
+        publicKeyJwk.put("kid", kid);
+        publicKeyJwk.put("crv", crv);
+        publicKeyJwk.put("alg", alg);
+        publicKeyJwk.put("x",   x);
+        publicKeyJwk.put("y",   y);
+
+
+        String[] dates = Utils.getIssueAndExpiracyDate(1);
+
+
+        HashMap<String, String> subjectInfo  = new HashMap<>();
+        for (int i = 10; i < args.size(); i++) {
+            String[] split = args.get(i).split(":");
+            subjectInfo.put(split[0], split[1]);
+        }
 
 
         if (IdentityExists(ctx, identifier)) {
@@ -117,30 +147,40 @@ public final class IdentityContract implements ContractInterface {
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_ALREADY_EXISTS.toString());
         }
+        if (!IdentityExists(ctx, controlledBy)) {
+            String errorMessage = String.format("Parent Identity %s does not exists", identifier);
+            System.out.println(errorMessage);
+            throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_NOT_FOUND.toString());
+        }
 
 
-        HashMap<String, String> publicKeyJwk = new HashMap<>();
-        HashMap<String, String> subjectInfo  = new HashMap<>();
+        JWSObject objReceiver = null;
+        boolean verified = false;
+        boolean match = false;
+
+        try {
+            objReceiver = JWSObject.parse(signature);
+            JSONObject jsonKey = new JSONObject(publicKeyJwk);
+            ECKey ecPublicJWK = JWK.parse(jsonKey).toECKey().toPublicJWK();
+            JWSVerifier verifier = new ECDSAVerifier(ecPublicJWK);
+            verified = objReceiver.verify(verifier);
+            match = identifier.equals(objReceiver.getPayload().toString());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
 
-        String[] dates = Utils.getIssueAndExpiracyDate(1);
-
-
-        publicKeyJwk.put("kty", kty);
-        publicKeyJwk.put("kid", kid);
-        publicKeyJwk.put("crv", crv);
-        publicKeyJwk.put("x",   x);
-        publicKeyJwk.put("y",   y);
-
-        for (int i = 8; i < args.size(); i++) {
-            String[] split = args.get(i).split(":");
-            subjectInfo.put(split[0], split[1]);
+        if(!verified ){
+            System.out.println("Signature invalid");
+            throw new ChaincodeException("Signature invalid", IdentityErrors.IDENTITY_NOT_FOUND.toString());
+        }
+        if(!match){
+            System.out.println("Signature payload does not match with identifier");
+            throw new ChaincodeException("Signature invalid", IdentityErrors.SIGNATURE_PAYLOAD_DOES_NOT_MATCH.toString());
         }
 
         Identity identity = new Identity(context, identifier, controlledBy, publicKeyJwk, subjectInfo, "active", dates[0], dates[1]);
-
         String assetJSON = genson.serialize(identity);
-
         stub.putStringState(identifier, assetJSON);
         return identity;
     }
