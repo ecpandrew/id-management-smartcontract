@@ -147,11 +147,14 @@ public final class IdentityContract implements ContractInterface {
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_ALREADY_EXISTS.toString());
         }
-        if (!IdentityExists(ctx, controlledBy)) {
-            String errorMessage = String.format("Parent Identity %s does not exists", identifier);
-            System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_NOT_FOUND.toString());
+        if(!identifier.equals(controlledBy)){
+            if (!IdentityExists(ctx, controlledBy)) {
+                String errorMessage = String.format("Parent Identity %s does not exists", identifier);
+                System.out.println(errorMessage);
+                throw new ChaincodeException(errorMessage, IdentityErrors.IDENTITY_NOT_FOUND.toString());
+            }
         }
+
 
 
         JWSObject objReceiver = null;
